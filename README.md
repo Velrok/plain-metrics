@@ -10,5 +10,5 @@ Cli
 
 ```bash
 metrics server # start the server in the foreground
-metrics record <name> <value> [<unix ts>]
+metrics record <name> <value> [<unix ts in nanoseconds>]
 ```
