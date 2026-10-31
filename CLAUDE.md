@@ -20,6 +20,14 @@ Float-only metrics server plus `metrics` CLI. See `README.md` for the interface.
 - `docs/cli-help.md` holds `--help` for `metrics`, `server` and `record`. Regenerate it whenever CLI args change.
 - Update `README.md` when the user-facing interface changes.
 
+## Lessons
+
+- `lessons/` is for the **maintainer's own learning**, not end-user docs. One markdown file per topic, explaining a Rust concept or technique.
+- Prefer std-only, runnable examples. Where an established crate is the more idiomatic choice, show it too and add a std-vs-crate comparison table (deps, scaling, trade-offs) plus a recommendation for this project.
+- Compile and run all code before including it.
+- Annotate lesson code **heavily** with comments, unlike production code: give each comment the **what first, then the why** (a "What:" sentence followed by a "Why:" sentence). Cover ownership, `?`, `move`, `.await` and why each call exists. The reader is learning Rust.
+- Don't document the project's CLI there; that belongs in `README.md` and `docs/cli-help.md`.
+
 ## Conventions
 
 - `cargo clippy --all-targets` must be clean (`all` + `pedantic` are enabled in `Cargo.toml`).
