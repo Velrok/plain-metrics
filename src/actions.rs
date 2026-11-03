@@ -29,7 +29,7 @@ pub fn run_server(
     // T2 (writer)
     // once a sec drain and write TSV to todays file
     let data_dir = data_dir.to_path_buf();
-    let tsv_writer_handle = std::thread::spawn(move || tsv_writer::run(data_dir, receiver));
+    let tsv_writer_handle = std::thread::spawn(move || tsv_writer::run(&data_dir, receiver));
 
     // ☑️TODO: join them together and cancel the other if one of them fails
     socker_reader_handle

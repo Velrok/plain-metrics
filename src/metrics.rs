@@ -19,4 +19,8 @@ impl Metric {
         });
         Self { name, value, at }
     }
+
+    pub fn to_tsv(&self) -> String {
+        format!("{}\t{}\t{}", self.name, self.value, self.at)
+    }
 }

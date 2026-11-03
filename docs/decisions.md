@@ -16,6 +16,9 @@ Goal: float-only metrics server plus `metrics` CLI (server, record).
 - D14 – `record` timestamp is Option<i64> unix nanoseconds (i64 covers until year 2262); supersedes D13 and the seconds unit in D4.
 - D16 – `server` requires `--data-dir <PATH>`: metrics are written as TSV files in sub folders of it. Required (no default) until a sensible default is chosen.
 - D17 – Default socket is `$XDG_RUNTIME_DIR`, else `$TMPDIR`, else `/tmp`, plus `plain-metrics.sock`. Per-user dir first keeps the socket private. Answers the default-path question; `record --socket` still open.
+- D18 – `jiff` chosen over `chrono` to turn ns timestamps into dates. Both add 2 crates (chrono needs `--no-default-features`); jiff has the simpler API and works with defaults. Evidence: `cargo tree` in a scratch project.
+
+- D19 – TSV files are hourly: `<data-dir>/YYYY/MM/DD/YYYY-MM-DDTHHZ.tsv` (UTC), one file per hour, appended to. Was one file per metric timestamp (full ns RFC 3339 name), which made a file per write. No colons in names, so they are safe on any filesystem.
 
 ## Open questions
 
