@@ -2,7 +2,7 @@ pub type TimestampNS = i64;
 pub type Name = String;
 pub type Value = f64;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Metric {
     pub name: Name,
     pub value: Value,
