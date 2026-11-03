@@ -26,12 +26,27 @@ case "${1:-}" in
       sleep "$INTERVAL"
     done
     ;;
+  data)
+    # Follow every file in the data dir, including ones created later.
+    mkdir -p "$DATA_DIR"
+    trap 'kill 0' EXIT
+    seen=$'\n'  # newline-separated list; macOS bash 3.2 has no associative arrays
+    while true; do
+      for f in "$DATA_DIR"/*; do
+        [[ -f "$f" && "$seen" != *$'\n'"$f"$'\n'* ]] || continue
+        seen+="$f"$'\n'
+        # Prefix each line with the file name; -n +1 shows existing content too.
+        tail -n +1 -F "$f" 2>/dev/null | sed -u "s|^|$(basename "$f"): |" &
+      done
+      sleep 1
+    done
+    ;;
   "")
     for tool in mprocs rg bc nc; do
       command -v "$tool" >/dev/null || { echo "missing: $tool" >&2; exit 1; }
     done
     cargo build --manifest-path "$ROOT/Cargo.toml"
-    exec mprocs --names "server,cpu monitor" "$0 server" "$0 cpu"
+    exec mprocs --names "server,cpu monitor,data files" "$0 server" "$0 cpu" "$0 data"
     ;;
   *)
     echo "usage: $0" >&2
