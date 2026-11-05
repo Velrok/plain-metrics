@@ -8,7 +8,7 @@ SOCKET="${TMPDIR:-/tmp}/plain-metrics-demo.sock"
 DATA_DIR="${TMPDIR:-/tmp}/plain-metrics-demo-data"
 INTERVAL=5
 
-# Used by the panes below: `demo.sh server` and `demo.sh cpu`.
+# Used by the panes below: `demo.sh server`, `demo.sh cpu` and `demo.sh data`.
 case "${1:-}" in
   server)
     mkdir -p "$DATA_DIR"
@@ -32,17 +32,18 @@ case "${1:-}" in
     trap 'kill 0' EXIT
     seen=$'\n'  # newline-separated list; macOS bash 3.2 has no associative arrays
     while true; do
-      for f in "$DATA_DIR"/*; do
-        [[ -f "$f" && "$seen" != *$'\n'"$f"$'\n'* ]] || continue
+      # Files are nested as YYYY/MM/DD/*.tsv, so search recursively.
+      while IFS= read -r f; do
+        [[ "$seen" != *$'\n'"$f"$'\n'* ]] || continue
         seen+="$f"$'\n'
-        # Prefix each line with the file name; -n +1 shows existing content too.
-        tail -n +1 -F "$f" 2>/dev/null | sed -u "s|^|$(basename "$f"): |" &
-      done
+        # Prefix each line with the path below the data dir; -n +1 shows existing content too.
+        tail -n +1 -F "$f" 2>/dev/null | sed -u "s|^|${f#"$DATA_DIR"/}: |" &
+      done < <(fd -t f -e tsv . "$DATA_DIR")
       sleep 1
     done
     ;;
   "")
-    for tool in mprocs rg bc; do
+    for tool in mprocs rg bc fd; do
       command -v "$tool" >/dev/null || { echo "missing: $tool" >&2; exit 1; }
     done
     cargo build --manifest-path "$ROOT/Cargo.toml"
