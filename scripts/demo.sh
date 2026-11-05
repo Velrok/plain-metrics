@@ -21,7 +21,7 @@ case "${1:-}" in
       # "CPU usage: 7.8% user, 5.5% sys, 86.6% idle" -> field 7 is the idle share.
       idle=$(top -l 1 -n 0 | rg 'CPU usage' | cut -d ' ' -f 7 | tr -d '%')
       usage=$(echo "100 - $idle" | bc)
-      printf 'cpu.usage\t%s\n' "$usage" | nc -U -w 1 "$SOCKET"
+      "$ROOT/target/debug/metrics" record --socket "$SOCKET" "cpu.usage=$usage" >/dev/null
       echo "sent cpu.usage=$usage%"
       sleep "$INTERVAL"
     done
@@ -42,7 +42,7 @@ case "${1:-}" in
     done
     ;;
   "")
-    for tool in mprocs rg bc nc; do
+    for tool in mprocs rg bc; do
       command -v "$tool" >/dev/null || { echo "missing: $tool" >&2; exit 1; }
     done
     cargo build --manifest-path "$ROOT/Cargo.toml"
