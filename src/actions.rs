@@ -40,11 +40,21 @@ pub fn run_server(
         .expect("Expected TSV writer to exit without error.");
 }
 
-pub fn record_metric(
-    name: &str,
-    value: f64,
-    timestamp: Option<i64>,
-    sender: mpsc::Sender<metrics::Metric>,
-) {
-    todo!("record {name}={value} at {timestamp:?}")
+pub fn record_metrics(metrics: Vec<metrics::Metric>, sender: &mpsc::Sender<metrics::Metric>) {
+    let mut any_errors = false;
+    let mut send_successfully = 0;
+    for metric in metrics {
+        match sender.send(metric) {
+            Ok(()) => send_successfully += 1,
+            Err(err) => {
+                // eprint an err with the metrics that failed to send
+                eprintln!("failed to send metric: {:?}", err.0);
+                any_errors = true;
+            }
+        }
+    }
+    println!("sent {send_successfully} metrics successfully");
+    if any_errors {
+        std::process::exit(1);
+    }
 }

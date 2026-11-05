@@ -16,10 +16,9 @@ fn main() {
             socket,
             http_port,
         } => actions::run_server(&data_dir, socket.as_deref(), http_port, sender, receiver),
-        Command::Record {
-            name,
-            value,
-            timestamp,
-        } => actions::record_metric(&name, value, timestamp, sender),
+        Command::Record { metrics } => {
+            let metrics: Vec<metrics::Metric> = metrics.into_iter().map(Into::into).collect();
+            actions::record_metrics(metrics, &sender);
+        }
     }
 }
