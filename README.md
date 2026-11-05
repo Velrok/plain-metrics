@@ -9,6 +9,6 @@ A metrics server process that allows the collection of float only metrics in the
 Cli
 
 ```bash
-metrics server # start the server in the foreground
+metrics server --data-dir <path> [--socket <path>] [--http-port <port>] # start the server in the foreground
 metrics record [--socket <path>] <name>=<value>[@<unix ts in seconds>]... # send one or more metrics to the server
 ```
