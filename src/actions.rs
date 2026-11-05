@@ -1,6 +1,8 @@
 use crate::metrics;
 use crate::socket_reader;
 use crate::tsv_writer;
+use std::io::Write;
+use std::os::unix::net::UnixStream;
 use std::path;
 use std::{path::Path, sync::mpsc};
 
@@ -40,21 +42,46 @@ pub fn run_server(
         .expect("Expected TSV writer to exit without error.");
 }
 
-pub fn record_metrics(metrics: Vec<metrics::Metric>, sender: &mpsc::Sender<metrics::Metric>) {
-    let mut any_errors = false;
-    let mut send_successfully = 0;
-    for metric in metrics {
-        match sender.send(metric) {
-            Ok(()) => send_successfully += 1,
-            Err(err) => {
-                // eprint an err with the metrics that failed to send
-                eprintln!("failed to send metric: {:?}", err.0);
-                any_errors = true;
-            }
+/// Sends the metrics to the running server over its local socket.
+pub fn record_metrics(metrics: &[metrics::Metric], socket: Option<&Path>) {
+    let socket = socket.map_or_else(socket_reader::default_socket, Path::to_path_buf);
+    let result = UnixStream::connect(&socket)
+        .map_err(|err| format!("failed to connect to {}: {err}", socket.display()))
+        .and_then(|stream| write_metrics(stream, metrics).map_err(|err| err.to_string()));
+    match result {
+        Ok(()) => println!("sent {} metrics", metrics.len()),
+        Err(err) => {
+            eprintln!("{err}");
+            std::process::exit(1);
         }
     }
-    println!("sent {send_successfully} metrics successfully");
-    if any_errors {
-        std::process::exit(1);
+}
+
+/// Writes one TSV line per metric, the format the socket reader parses.
+fn write_metrics(mut out: impl Write, metrics: &[metrics::Metric]) -> std::io::Result<()> {
+    for metric in metrics {
+        writeln!(out, "{}", metric.to_tsv())?;
+    }
+    out.flush()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn write_metrics_writes_one_tsv_line_per_metric() {
+        let metrics = [
+            metrics::Metric::new("cpu".into(), 0.5, Some(10)),
+            metrics::Metric::new("mem".into(), 2.0, Some(20)),
+        ];
+        let mut out = Vec::new();
+
+        write_metrics(&mut out, &metrics).expect("writing to a Vec cannot fail");
+
+        assert_eq!(
+            String::from_utf8(out).expect("utf8"),
+            "cpu\t0.5\t10\nmem\t2\t20\n"
+        );
     }
 }

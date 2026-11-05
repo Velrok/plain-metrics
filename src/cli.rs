@@ -24,8 +24,15 @@ pub enum Command {
         #[arg(long)]
         http_port: Option<u16>,
     },
-    /// Record a single metric value
-    Record { metrics: Vec<MetricArg> },
+    /// Record one or more metrics as `name=value[@seconds]`
+    Record {
+        /// Path of the server's local socket (defaults to the server's default)
+        #[arg(long)]
+        socket: Option<PathBuf>,
+        /// Records as `name=value[@unix_seconds]` (seconds may be fractional)
+        #[arg(required = true, value_name = "NAME=VALUE[@TS]")]
+        metrics: Vec<MetricArg>,
+    },
 }
 
 // ☑️TODO: this is wasteful :/
