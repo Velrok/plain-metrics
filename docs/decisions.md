@@ -20,9 +20,16 @@ Goal: float-only metrics server plus `metrics` CLI (server, record).
 
 - D19 – TSV files are hourly: `<data-dir>/YYYY/MM/DD/YYYY-MM-DDTHHZ.tsv` (UTC), one file per hour, appended to. Was one file per metric timestamp (full ns RFC 3339 name), which made a file per write. No colons in names, so they are safe on any filesystem.
 
+## 2026-11-05
+
+- D20 – `record` takes one or more `name=value[@ts]` arguments (clap `Vec<MetricArg>` via `FromStr`), not a single name/value/timestamp. Several metrics per call; one self-contained token each. Supersedes the single-metric shape from D4/D14. Evidence: `src/cli.rs`, `FromStr` unit tests.
+- D21 – The CLI timestamp is fractional unix **seconds** (`f64`), converted to `i64` ns when building a `Metric`. Easier to type and read than ns. `f64` gives ~0.24 µs at the current epoch (as in D13); `f128` is nightly-only. Storage stays ns (D14); supersedes only the ns CLI unit in D14.
+- D22 – `record` sends to the running server over its local Unix socket, one TSV line per metric (the format the socket reader parses). Optional `--socket <PATH>`, default as in D17; exits 1 if it cannot connect. Answers the open question on `record --socket`. Evidence: manual run of server + `record` wrote both metrics to hourly TSV files.
+
 ## Open questions
 
+- Validate `MetricArg`: reject empty name, NaN/inf and negative timestamps, so the seconds→ns cast cannot saturate or give 0 for NaN.
+
 - TSV layout: how are sub folders split (per metric name? per day?) and what are the columns/file naming?
-- Does `record` also take `--socket`?
 - HTTP POST: request body format (JSON? line protocol?) and bind address (localhost only?)
 - Does "default to now" happen in the CLI or on the server?

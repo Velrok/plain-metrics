@@ -10,7 +10,7 @@ Usage: metrics <COMMAND>
 
 Commands:
   server  Start the server in the foreground
-  record  Record a single metric value
+  record  Record one or more metrics as `name=value[@seconds]`
   help    Print this message or the help of the given subcommand(s)
 
 Options:
@@ -37,15 +37,14 @@ Options:
 
 ```text
 $ metrics record --help
-Record a single metric value
+Record one or more metrics as `name=value[@seconds]`
 
-Usage: metrics record <NAME> <VALUE> [TIMESTAMP]
+Usage: metrics record [OPTIONS] <NAME=VALUE[@TS]>...
 
 Arguments:
-  <NAME>       Metric name
-  <VALUE>      Metric value
-  [TIMESTAMP]  Unix timestamp in nanoseconds (defaults to now)
+  <NAME=VALUE[@TS]>...  Records as `name=value[@unix_seconds]` (seconds may be fractional)
 
 Options:
-  -h, --help  Print help
+      --socket <SOCKET>  Path of the server's local socket (defaults to the server's default)
+  -h, --help             Print help
 ```

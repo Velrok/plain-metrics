@@ -10,5 +10,5 @@ Cli
 
 ```bash
 metrics server # start the server in the foreground
-metrics record <name> <value> [<unix ts in nanoseconds>]
+metrics record [--socket <path>] <name>=<value>[@<unix ts in seconds>]... # send one or more metrics to the server
 ```
